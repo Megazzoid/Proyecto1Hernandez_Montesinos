@@ -3,10 +3,11 @@
 	la $a0 %cadena
 	syscall	
 
-
 .end_macro
 
 .macro leerCadena (%direccion)
+	la $a0 %direccion
+	li $a1 33
 	li $v0 8
 	syscall
 
@@ -38,19 +39,22 @@ mensaje3:	.asciiz "Indique el sistema de numeración al cual desea convertir: \n
 
 salto: 		.asciiz "\n"
 
-#bin2: 
-#bcd:
-#base10:
-#oct:
-#hex:
-
+binarioEntrada:	.space 33
+bpdEbtrada:	.space 33
+decimalEntrada:	.space 9	
+octalEntrada:	.space 9		
+hexadecEntrada:	.space 9
 
 .text
 
 mostrarCadena(mensaje1)
 leerEntero($t0) 	#$t0: guarda el número correspondiente al sistema de enumeración introducido
 
+#Lógica donde se verá en donde guardar el valor (con ifs)
+
 mostrarCadena(mensaje2)
+li $t7 33
+leerCadena(binarioEntrada) #(Si llegase el usuario a elegir el número 1)
 salto
 
 mostrarCadena(mensaje3)
