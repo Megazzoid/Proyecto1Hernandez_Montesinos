@@ -65,10 +65,11 @@ mensaje1:	.asciiz "Indique el sistema de numeración en el cual introducirá el 
 mensaje2:	.asciiz "Ingrese el valor a convertir ==>  "
 mensaje3:	.asciiz "Indique el sistema de numeración al cual desea convertir: \n (1) Binario en Complemento a 2 \n (2) Decimal Empaquetado \n (3) Base 10 \n (4) Octal \n (5) Hexadecimal \n ==> "	
 mensaje4:	.asciiz "El número convertido es: "
+mensaje5:	.asciiz "Recuerde no introducir espacios al insertar el numero en complemento 2 "
 
 salto: 		.asciiz "\n"
 
-binarioEntrada:	.space 36
+binarioEntrada:	.space 33
 bpdEntrada:	.space 33
 decimalEntrada:	.space 9	
 octalEntrada:	.space 9		
@@ -99,6 +100,7 @@ beq $t0 5 hexadecSeleccion
 
 binarioSeleccion:
 	leerCadena(binarioEntrada)
+	salto
 	b introducirValor		
 
 bpdSeleccion:
@@ -133,10 +135,54 @@ conversorToDecimal:
 binarioToDecimal:
 	#Aquí va el código de binario a decimal
 
+	li $t3 1 # multiplicacion
+	li $t5 31 #apuntador 
+	li $t4 2 #contador 
+	li $t6 0 #resultado
+	
+	buclebad:
+	beq $t5 1 finalbad
 
+	lb $t7 binarioEntrada ($t5)
+	
 
+	addi $t7 $t7 -48
+	
+	bgtz $t7 sumabad
+	
+	
+	mul $t3 $t4 $t3
+	add $t5 $t5 -1
+	
+	b buclebad
+	
+	sumabad:	
+	
+	add $t6 $t6 $t3
+	mul $t3 $t3 $t4 
+	add $t5 $t5 -1
+	b buclebad
+	
+	
+	finalbad:
+	
+	lb $t7 binarioEntrada ($t5)
+	
+	addi $t7 $t7 -48
+	
+	bgtz $t7 final2bad
+	
+	move $t9 $t6
+	
 	b conversor	
-
+	
+	final2bad:
+	
+	sub $t6 $t6 $t3
+	move $t9 $t6
+	b conversor
+	
+	
 bpdToDecimal:
 	li $t9 0	#$t9: guarda el número entero sin signo.
 	li $t2 0
@@ -336,7 +382,7 @@ decimalToBin:
         li $t4, 4        # Para ir imprimiendo en 4 digitos
 
         li $t0, 32       # Palabra de 32 bits 
-        la $t3,resultado    # answer string set up here
+        la $t3,resultado    #La respeusta se almacenara aqui
         
         mostrarCadena(mensaje4)
 	
@@ -355,8 +401,8 @@ decimalToBin:
 
         		add $t1,$t1,48   # ASCII '0' es 48
         		sb $t1,($t3)     # salvar como string
-        		add $t3,$t3,1    # advance destination pointer
-        		add $t0,$t0,-1   # reducir el contador
+        		add $t3,$t3,1    # Se aumenta el apuntador en 1 
+        		add $t0,$t0,-1   # reducir el contador en -1
         		bnez $t0,loop    # continuar si contador es menor a 0
         
         b chao
