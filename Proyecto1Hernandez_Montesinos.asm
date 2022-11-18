@@ -5,6 +5,24 @@
 
 .end_macro
 
+.macro mostrarCadenaInversa (%cadena, %cadenaResultado, %fin)
+	#li $t2 1
+	subi $t2 %fin 1
+	li $t4 0
+	loopInvertir:
+		bltz $t2 finLoopInvertir
+		lb $t3 %cadena($t2)
+		sb $t3 %cadenaResultado($t4)
+				
+		subi $t2 $t2 1
+		addi $t4 $t4 1
+		b loopInvertir
+	finLoopInvertir:
+		li $t3 0
+		sb $t3 %cadenaResultado($t4)
+		mostrarCadena(%cadenaResultado)
+.end_macro
+
 .macro leerCadena (%direccion)
 	la $a0 %direccion
 	li $a1 36
@@ -25,6 +43,7 @@
 	move %registro $v0
 
 .end_macro 
+
 	
 .macro convertirNegativo (%registro)
 	mul %registro %registro -1
@@ -58,6 +77,10 @@ hexadecEntrada:	.space 9
 resultado: 	.space 32
 espacio:	.asciiz " "
 suma:		.asciiz "+"
+resta:		.asciiz "-"
+
+hexAux:		.space 36
+hexResultado:	.space 36
 
 .text
 
@@ -339,21 +362,24 @@ decimalToBin:
         b chao
 	
 decimalToBpd:
+
 decimalToDec:
 	mostrarCadena(mensaje4)
-	mostrarEntero($t9)		
+	mostrarEntero($t9)
+	b chao
+			
 decimalToOct:
 	
-        move $t2,$t9     # $t2 guarda el numero
+        move $t2,$t9     	# $t2: guarda el número entero
                    
-        li $t3 0 #octal
-        li $t4 1 #i
-        li $t7 8
+        li $t3 0 		# $t3: octal
+        li $t4 1 		# $t4: i
+        li $s0 8
         
 	loopoctal:
 		beqz $t2 finloopoctal
 	
-		div $t2 $t7
+		div $t2 $s0
 	
 		mfhi $t5
 		mflo $t2
@@ -378,7 +404,50 @@ decimalToOct:
 		
 		b chao
 decimalToHex:
-
+	move $t2 $t9    	# $t2: guarda el número entero
+        
+        abs $t2 $t2		#  hace positivo al número guardado en $t2
+                
+        li $t8 0 		# $t8: índice para hexAux (servirá también para conocer la longitud de esta)
+        li $s0 16		
+        
+	loopHex:
+		beqz $t2 finLoopHex
+	
+		div $t2 $s0
+	
+		mfhi $t5
+		mflo $t2
+		
+		addi $t3 $t5 48		# Se le suma 48 para guardarlo en memoria en su equivalente en hexadecimal
+		bge $t5 10 letra
+		b continuar
+		letra:
+			addi $t3 $t3 7	# Se le suma 7 más para los casos de que el equivalente sea una letra en hexadecimal
+		continuar:
+			sb $t3 hexAux($t8)
+		
+			addi $t8 $t8 1	
+	
+			b loopHex
+	finLoopHex:
+		
+		li $t3 0
+		sb $t3 hexAux($t8)
+		
+		bgez $t9 conpositivo2
+		
+		mostrarCadena(mensaje4)
+		mostrarCadena(resta)
+		mostrarCadenaInversa(hexAux, hexResultado, $t8)
+		b chao
+		
+	conpositivo2:
+		mostrarCadena(mensaje4)
+		mostrarCadena(suma)
+		mostrarCadenaInversa(hexAux, hexResultado, $t8)
+		
+		b chao	
 		
 chao:		
 	salir
