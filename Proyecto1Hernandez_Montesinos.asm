@@ -65,10 +65,11 @@ mensaje1:	.asciiz "Indique el sistema de numeración en el cual introducirá el 
 mensaje2:	.asciiz "Ingrese el valor a convertir ==>  "
 mensaje3:	.asciiz "Indique el sistema de numeración al cual desea convertir: \n (1) Binario en Complemento a 2 \n (2) Decimal Empaquetado \n (3) Base 10 \n (4) Octal \n (5) Hexadecimal \n ==> "	
 mensaje4:	.asciiz "El número convertido es: "
-mensaje5:	.asciiz "Recuerde no introducir espacios al insertar el numero en complemento 2 "
+mensaje5:	.asciiz "Para ver el resultado, ver la tabla de registros en t5 "
 
 salto: 		.asciiz "\n"
 
+pila: .space 7 
 binarioEntrada:	.space 33
 bpdEntrada:	.space 33
 decimalEntrada:	.space 9	
@@ -141,24 +142,24 @@ binarioToDecimal:
 	li $t6 0 #resultado
 	
 	buclebad:
-	beq $t5 1 finalbad
+	beq $t5 1 finalbad # Bad es Binario a decimal 
 
 	lb $t7 binarioEntrada ($t5)
 	
 
-	addi $t7 $t7 -48
+	addi $t7 $t7 -48 # Se resta el 48 para verificar si es 0 o 1 
 	
 	bgtz $t7 sumabad
 	
 	
-	mul $t3 $t4 $t3
-	add $t5 $t5 -1
+	mul $t3 $t4 $t3 # Se aumenta el elevado a 2 
+	add $t5 $t5 -1 #Se cambia el apuntador 
 	
 	b buclebad
 	
 	sumabad:	
 	
-	add $t6 $t6 $t3
+	add $t6 $t6 $t3 #Se aumenta el resultado 
 	mul $t3 $t3 $t4 
 	add $t5 $t5 -1
 	b buclebad
@@ -170,16 +171,16 @@ binarioToDecimal:
 	
 	addi $t7 $t7 -48
 	
-	bgtz $t7 final2bad
+	bgtz $t7 final2bad # Se verifica si es negativo o positivo
 	
-	move $t9 $t6
+	move $t9 $t6 #Si es positivo se mueve el resultado 
 	
 	b conversor	
 	
 	final2bad:
 	
-	sub $t6 $t6 $t3
-	move $t9 $t6
+	sub $t6 $t6 $t3 #Si es negativo se resta el resultado 
+	move $t9 $t6 # Se mueve el resultado 
 	b conversor
 	
 	
@@ -408,7 +409,97 @@ decimalToBin:
         b chao
 	
 decimalToBpd:
-
+	
+	move $t2,$t9  
+	   	# $t2: guarda el número entero
+	   	
+	# Procesamiento   	
+	
+	bltz $t2 CasoDTBnegativo # Si es negativo salta A CasoDTBnegativo
+	
+	CasoDTBpositivo:
+	
+	li $t7 1
+	b ContinuarDTBP
+	
+	CasoDTBnegativo:
+	
+	li $t7 0
+	mul $t2 $t2 -1
+	
+	ContinuarDTBP:
+	
+	li $t3 0
+	li $s1 10 #Se guarda la constante 10 para dividr
+	
+	comienzoconstruccion: 
+	
+	#Condicion de parada
+	beqz $t2 finconstruccion
+	
+	div $t2 $s1 #Dividimos el numero que esta guardado entre 10
+	
+	mflo $t2
+	mfhi $t5
+	
+	#Guardamos el digito leido
+	sb $t5 pila($t3)
+	
+	#movemos $t3 un espacio
+	
+	addi $t3 $t3 1
+	
+	b comienzoconstruccion
+	
+	finconstruccion:
+	
+	addi $t3 $t3 -1
+	
+	li $t5 0
+	
+	conversionDaDe:
+	
+	bltz $t3 finconversionDade
+	
+	lb $t6 pila($t3)
+	
+	#desplazamos los bits de $t1 4 posiciones hacia la izquieda
+	
+	sll $t5 $t5 4
+	
+	or $t5 $t6 $t5
+	
+	addi $t3 $t3 -1
+	
+	b conversionDaDe
+		 
+	finconversionDade:
+	
+	sll $t5 $t5 4
+	
+	beqz $t7 CasoDTBnegativo2
+	b CasoDTBpositivo2
+		
+	CasoDTBpositivo2:
+	
+	li $t8 0xC
+	add $t5 $t5 $t8
+	
+	mostrarCadena(mensaje5)
+	
+	b chao
+	
+	CasoDTBnegativo2:
+	
+	li $t8 0xD
+	add $t5 $t5 $t8
+	
+	mostrarCadena(mensaje5)
+	
+	b chao
+	
+	fincasosigno:
+	
 decimalToDec:
 	mostrarCadena(mensaje4)
 	mostrarEntero($t9)
