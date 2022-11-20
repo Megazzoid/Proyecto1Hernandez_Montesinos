@@ -6,7 +6,8 @@ Desde la décima versión del sistema operativo Windows, se ha incluido dentro d
 Se debe desarrollar un programa que permita fácilmente realizar conversiones entre distintos sistemas de numeración. El usuario deberá indicar 3 datos: 
 El sistema de numeración en el cual introducirá el valor a convertir. 
 El valor como tal que desea convertir.
-El sistema de numeración hacia el cual quiere convertir el valor introducido. 
+El sistema de numeración hacia el cual quiere convertir el valor introducido.
+
 Por ejemplo, el usuario podrá indicar que quiere convertir un número expresado en base 10, luego procederá a introducir dicho número (digamos que el número introducido es "+540"), y posteriormente podrá indicar al sistema de numeración al cual quiere convertir el número. Por ejemplo, si quiere convertirlo a binario en complemento a 2, el entero introducido pasaría a ser:
 0000 0000 0000 0000 0000 0010 0001 1100
 
