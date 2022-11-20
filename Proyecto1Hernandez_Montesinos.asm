@@ -48,6 +48,25 @@
 .macro convertirNegativo (%registro)
 	mul %registro %registro -1
 .end_macro
+
+
+.macro mostrarSigno(%entero)
+	bgez %entero esPositivo
+	mostrarCadena(resta)
+	b salirMacro	
+	esPositivo:
+		mostrarCadena(suma)
+	salirMacro:
+.end_macro
+
+.macro mostrarSignoSuma (%entero)
+	bgez %entero esPositivo
+	b salirMacro	
+	esPositivo:
+		mostrarCadena(suma)
+	salirMacro:
+.end_macro
+
 	
 .macro salto
 	li $v0 4
@@ -65,7 +84,6 @@ mensaje1:	.asciiz "Indique el sistema de numeración en el cual introducirá el 
 mensaje2:	.asciiz "Ingrese el valor a convertir ==>  "
 mensaje3:	.asciiz "Indique el sistema de numeración al cual desea convertir: \n (1) Binario en Complemento a 2 \n (2) Decimal Empaquetado \n (3) Base 10 \n (4) Octal \n (5) Hexadecimal \n ==> "	
 mensaje4:	.asciiz "El número convertido es: "
-mensaje5:	.asciiz "Para ver el resultado, ver la tabla de registros en t5 "
 
 salto: 		.asciiz "\n"
 
@@ -185,23 +203,23 @@ binarioToDecimal:
 	
 	
 bpdToDecimal:
-	li $t9 0	#$t9: guarda el número entero sin signo.
+	li $t9 0				#$t9: guarda el número entero sin signo.
 	li $t2 0
 	loop1:	
 		beq $t2 28 finLoop1
-		li $t8 0 #$t8: guarda el número entero de un byte
+		li $t8 0 			#$t8: guarda el número entero de un byte
 		li $t3 8
 		loop2:
-			beqz $t3 finLoop2 #t3= 8, t3= 4, t3=2, t3=1
+			beqz $t3 finLoop2 
 			lb $t4 bpdEntrada($t2)
 			subi $t4 $t4 48
-			#mostrarEntero($t4)
+			
 			mul $t4 $t4 $t3
 			
 			add $t8 $t8 $t4
 			
 						
-			div $t3 $t3 2 #t3 = 8/2 = 4, t3= 4/2 = 2, t3=2/2 = 1
+			div $t3 $t3 2 
 			
 			
 			addi $t2 $t2 1
@@ -214,13 +232,13 @@ bpdToDecimal:
 	finLoop1:
 	salto
 	signo:
-		li $t8 0 #$t8: guarda el número entero de un byte
+		li $t8 0 			#$t8: guarda el número entero de un byte
 		li $t3 8	
 		loop3:
 			beq $t2 32 finLoop3
 			lb $t4 bpdEntrada($t2)
 			subi $t4 $t4 48
-			#mostrarEntero($t4)
+
 			mul $t4 $t4 $t3
 			
 			add $t8 $t8 $t4
@@ -243,7 +261,7 @@ decimalToDecimal:
 	li $t9 0
 	loop5: 
 	
-		lb $t3 decimalEntrada($t2)  #t1 = 49, t2 = 49
+		lb $t3 decimalEntrada($t2) 
 	
 		beqz $t3 finLoop5
 		beq $t3 10 finLoop5
@@ -410,46 +428,44 @@ decimalToBin:
 	
 decimalToBpd:
 	
-	move $t2,$t9  
-	   	# $t2: guarda el número entero
+	move $t2,$t9 			# $t2: guarda el número entero
 	   	
-	# Procesamiento   	
+  	
 	
-	bltz $t2 CasoDTBnegativo # Si es negativo salta A CasoDTBnegativo
+	bltz $t2 bpdNegativo 		# Si es negativo salta A CasoDTBnegativo
 	
-	CasoDTBpositivo:
+	bpdPositivo:
 	
 	li $t7 1
-	b ContinuarDTBP
+	b continuarBpd
 	
-	CasoDTBnegativo:
+	bpdNegativo:
 	
 	li $t7 0
 	mul $t2 $t2 -1
 	
-	ContinuarDTBP:
+	continuarBpd:
 	
 	li $t3 0
-	li $s1 10 #Se guarda la constante 10 para dividr
+	li $s0 10 			#Se guarda la constante 10 para dividir
 	
 	comienzoconstruccion: 
+
+		beqz $t2 finconstruccion
 	
-	#Condicion de parada
-	beqz $t2 finconstruccion
+		div $t2 $s0 		#Dividimos el numero que esta guardado entre 10
 	
-	div $t2 $s1 #Dividimos el numero que esta guardado entre 10
+		mflo $t2
+		mfhi $t5
 	
-	mflo $t2
-	mfhi $t5
+		#Guardamos el digito leido
+		sb $t5 pila($t3)
 	
-	#Guardamos el digito leido
-	sb $t5 pila($t3)
+		#movemos $t3 un espacio
 	
-	#movemos $t3 un espacio
+		addi $t3 $t3 1
 	
-	addi $t3 $t3 1
-	
-	b comienzoconstruccion
+		b comienzoconstruccion
 	
 	finconstruccion:
 	
@@ -459,49 +475,66 @@ decimalToBpd:
 	
 	conversionDaDe:
 	
-	bltz $t3 finconversionDade
+		bltz $t3 finconversionDade
 	
-	lb $t6 pila($t3)
+		lb $t6 pila($t3)
 	
-	#desplazamos los bits de $t1 4 posiciones hacia la izquieda
+		#desplazamos los bits de $t1 4 posiciones hacia la izquieda
 	
-	sll $t5 $t5 4
+		sll $t5 $t5 4
 	
-	or $t5 $t6 $t5
+		or $t5 $t6 $t5
 	
-	addi $t3 $t3 -1
+		addi $t3 $t3 -1
 	
-	b conversionDaDe
+		b conversionDaDe
 		 
 	finconversionDade:
 	
 	sll $t5 $t5 4
 	
-	beqz $t7 CasoDTBnegativo2
-	b CasoDTBpositivo2
+	beqz $t7 bpdNegativo2
+	b bpdPositivo2
 		
-	CasoDTBpositivo2:
+	bpdPositivo2:
 	
 	li $t8 0xC
 	add $t5 $t5 $t8
 	
-	mostrarCadena(mensaje5)
+	b imprimirBpd
 	
-	b chao
-	
-	CasoDTBnegativo2:
+	bpdNegativo2:
 	
 	li $t8 0xD
 	add $t5 $t5 $t8
 	
-	mostrarCadena(mensaje5)
+	imprimirBpd:
+	mostrarCadena(mensaje4)
+	li $t3 0
+	loopBpd:
+		beq $t3 32 finLoopBpd
+		li $t4 0
+		loopBpd2:
+			beq $t4 4 finLoopBpd2
+			andi $t6 $t5 0x80000000
+			srl $t6 $t6 31
+			mostrarEntero($t6)
+			sll $t5 $t5 1
+			addi $t3 $t3 1
+			addi $t4 $t4 1
+			b loopBpd2
+		finLoopBpd2:
+		mostrarCadena(espacio)
+		
+		b loopBpd
+		
+	finLoopBpd:
 	
 	b chao
 	
-	fincasosigno:
-	
 decimalToDec:
 	mostrarCadena(mensaje4)
+	mostrarSignoSuma ($t9)
 	mostrarEntero($t9)
 	b chao
 			
@@ -528,18 +561,16 @@ decimalToOct:
 		mul $t4 $t4 10
 	
 		b loopoctal
+		
 	finloopoctal:
 	
-		bgez $t3 conpositivo
 		mostrarCadena(mensaje4)
-		mostrarEntero ($t3)
-		b chao
-	conpositivo:
-		mostrarCadena(mensaje4)
-		mostrarCadena(suma)
+		mostrarSignoSuma ($t9)
 		mostrarEntero ($t3)
 		
 		b chao
+		
+		
 decimalToHex:
 	move $t2 $t9    	# $t2: guarda el número entero
         
@@ -571,17 +602,9 @@ decimalToHex:
 		
 		li $t3 0
 		sb $t3 hexAux($t8)
-		
-		bgez $t9 conpositivo2
-		
+			
 		mostrarCadena(mensaje4)
-		mostrarCadena(resta)
-		mostrarCadenaInversa(hexAux, hexResultado, $t8)
-		b chao
-		
-	conpositivo2:
-		mostrarCadena(mensaje4)
-		mostrarCadena(suma)
+		mostrarSigno($t9)
 		mostrarCadenaInversa(hexAux, hexResultado, $t8)
 		
 		b chao	
