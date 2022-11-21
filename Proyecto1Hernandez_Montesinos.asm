@@ -6,7 +6,6 @@
 .end_macro
 
 .macro mostrarCadenaInversa (%cadena, %cadenaResultado, %fin)
-	#li $t2 1
 	subi $t2 %fin 1
 	li $t4 0
 	loopInvertir:
@@ -43,12 +42,6 @@
 	move %registro $v0
 
 .end_macro 
-
-	
-.macro convertirNegativo (%registro)
-	mul %registro %registro -1
-.end_macro
-
 
 .macro mostrarSigno(%entero)
 	bgez %entero esPositivo
@@ -123,36 +116,34 @@ conversorToDecimal:
 	beq $t0 5 hexadecToDecimal
 	
 binarioToDecimal:
-	#Aquí va el código de binario a decimal
 
-	li $t3 1 # multiplicacion
-	li $t5 31 #apuntador 
-	li $t4 2 #contador 
-	li $t6 0 #resultado
+	li $t3 1 				# multiplicacion
+	li $t5 31 				#apuntador 
+	li $t4 2 				#contador 
+	li $t6 0 				#resultado
 	
 	buclebad:
-	beq $t5 1 finalbad # Bad es Binario a decimal 
+		beq $t5 1 finalbad 		# Bad es Binario a decimal 
 
-	lb $t7 entrada ($t5)
+		lb $t7 entrada ($t5)
 	
 
-	addi $t7 $t7 -48 # Se resta el 48 para verificar si es 0 o 1 
+		addi $t7 $t7 -48 		# Se resta el 48 para verificar si es 0 o 1 
 	
-	bgtz $t7 sumabad
+		bgtz $t7 sumabad
 	
 	
-	mul $t3 $t4 $t3 # Se aumenta el elevado a 2 
-	add $t5 $t5 -1 #Se cambia el apuntador 
+		mul $t3 $t4 $t3 		# Se aumenta el elevado a 2 
+		add $t5 $t5 -1 			#Se cambia el apuntador 
 	
-	b buclebad
+		b buclebad
 	
-	sumabad:	
+		sumabad:	
 	
-	add $t6 $t6 $t3 #Se aumenta el resultado 
-	mul $t3 $t3 $t4 
-	add $t5 $t5 -1
-	b buclebad
-	
+			add $t6 $t6 $t3 	#Se aumenta el resultado 
+			mul $t3 $t3 $t4 
+			add $t5 $t5 -1
+		b buclebad
 	
 	finalbad:
 	
@@ -160,16 +151,16 @@ binarioToDecimal:
 	
 	addi $t7 $t7 -48
 	
-	bgtz $t7 final2bad # Se verifica si es negativo o positivo
+	bgtz $t7 final2bad 			# Se verifica si es negativo o positivo
 	
-	move $t9 $t6 #Si es positivo se mueve el resultado 
+	move $t9 $t6 				#Si es positivo se mueve el resultado 
 	
 	b conversor	
 	
 	final2bad:
 	
-	sub $t6 $t6 $t3 #Si es negativo se resta el resultado 
-	move $t9 $t6 # Se mueve el resultado 
+	sub $t6 $t6 $t3 			#Si es negativo se resta el resultado 
+	move $t9 $t6 				# Se mueve el resultado 
 	b conversor
 	
 	
@@ -177,9 +168,10 @@ bpdToDecimal:
 	li $t9 0				#$t9: guarda el número entero sin signo.
 	li $t2 0
 	loop1:	
-		beq $t2 28 finLoop1
+		beq $t2 28 finLoop1		
 		li $t8 0 			#$t8: guarda el número entero de un byte
 		li $t3 8
+						# segmenta la cadena cada 4 bytes, en un byte, cada bit, comenzando por el más significativo es multiplicado por $t3 que irá disminuyendo en 8,4,2,1		
 		loop2:
 			beqz $t3 finLoop2 
 			lb $t4 entrada($t2)
@@ -187,10 +179,10 @@ bpdToDecimal:
 			
 			mul $t4 $t4 $t3
 			
-			add $t8 $t8 $t4
+			add $t8 $t8 $t4		 
 			
 						
-			div $t3 $t3 2 
+			div $t3 $t3 2		
 			
 			
 			addi $t2 $t2 1
@@ -258,35 +250,34 @@ decimalToDecimal:
 			
 			
 octalToDecimal:
-	li $t9 0	#$t9: guarda el número entero sin signo.
-	li $t3 0	#$t3: contador de caracteres
+	li $t9 0			#$t9: guarda el número entero sin signo.
+	li $t3 0			#$t3: contador de caracteres
 	li $t2 0
-	loopAux2:
+	loopAux2:			#cuenta la cantidad de caracteres del octal introducido
 		lb $t4 entrada($t2)
-		beq $t4 10 finLoopAux2
-		beq $t4 0 finLoopAux2
+		beq $t4 10 finLoopAux2	#condicion de parada es que $t4 sea 10, un salto de linea \n
 		addi $t2 $t2 1
 		addi $t3 $t3 1
 		b loopAux2
 	
 	finLoopAux2:			
-	subi $t3 $t3 2		#para que coincida con los exponentes
+	subi $t3 $t3 2			# para que coincida con los exponentes (se resta 1 por el signo, y otro porque comienza desde 0)
 	li $t2 1
 	
 	loop6:
 		bltz $t3 finLoop6
 		lb $t4 entrada($t2)	
-		subi $t4, $t4 48
+		subi $t4 $t4 48
 		
 
-		mul $t6 $t3 3
-		li $t5 0x0001
-		sllv $t5 $t5 $t6			
+		mul $t6 $t3 3		# cantidad de bits a desplazar			
+		li $t5 0x0001		
+		sllv $t5 $t5 $t6				
 		mul $t4 $t4 $t5
-		add $t9 $t9 $t4
+		add $t9 $t9 $t4		# $t9: guarda el octal en número decimal convertido
 			
 		subi $t3 $t3 1
-		addi $t2, $t2, 1
+		addi $t2 $t2 1
 			
 		b loop6
 				
@@ -322,10 +313,10 @@ hexadecToDecimal:
 		bltz $t3 finLoop4
 		lb $t4 entrada($t2)	
 		bge $t4 65 restar55
-		subi $t4, $t4 48
+		subi $t4 $t4 48
 		b seguir
 		restar55:
-			subi $t4, $t4 55	
+			subi $t4 $t4 55	
 		seguir:
 
 			mul $t6 $t3 4
@@ -336,7 +327,7 @@ hexadecToDecimal:
 			add $t9 $t9 $t4
 			
 			subi $t3 $t3 1
-			addi $t2, $t2, 1
+			addi $t2 $t2 1
 			
 			b loop4
 				
@@ -366,17 +357,17 @@ conversor:
 
 decimalToBin:
      
-        move $t2 $t9     # $t2 guarda el numero
+        move $t2 $t9     		# $t2 guarda el numero
 
-        li $t4 4        # Para ir imprimiendo en 4 digitos
+        li $t4 4        		# Para ir imprimiendo en 4 digitos
 
-        li $t0 32       # Palabra de 32 bits 
-        la $t3 binResultado    #La respeusta se almacenara aqui
+        li $t0 32      			# Palabra de 32 bits 
+        la $t3 binResultado   		#La respeusta se almacenará aqui
         
         mostrarCadena(mensaje4)
 	
-	loop:   rol $t2 $t2 1    # comenzar con el dígito más a la izquierda
-       		and $t1 $t2 1    # enmascarar un dígito binario
+	loop:   rol $t2 $t2 1    	# comenzar con el dígito más a la izquierda
+       		and $t1 $t2 1    	# enmascarar un dígito binario
 
         	div $t0 $t4
         	mfhi $t5
@@ -386,7 +377,7 @@ decimalToBin:
 
 		skip:   mostrarEntero($t1) 
 	
-			# guardar el digito en string
+					# guardar el digito en string
 
         		add $t1 $t1 48   # ASCII '0' es 48
         		sb $t1,($t3)     # salvar como string
@@ -399,84 +390,62 @@ decimalToBin:
 decimalToBpd:
 	
 	move $t2 $t9 			# $t2: guarda el número entero
-	   	
-  	
 	
-	bltz $t2 bpdNegativo 		# Si es negativo salta A CasoDTBnegativo
-	
-	bpdPositivo:
-	
-	li $t7 1
-	b continuarBpd
-	
-	bpdNegativo:
-	
-	li $t7 0
-	mul $t2 $t2 -1
-	
-	continuarBpd:
+	abs $t2 $t2
 	
 	li $t3 0
 	li $s0 10 			#Se guarda la constante 10 para dividir
 	
-	comienzoconstruccion: 
+	loopBpdPila: 
 
-		beqz $t2 finconstruccion
+		beqz $t2 finLoopBpdPila
 	
-		div $t2 $s0 		#Dividimos el numero que esta guardado entre 10
+		div $t2 $s0 		
 	
 		mflo $t2
 		mfhi $t5
 	
-		#Guardamos el digito leido
 		sb $t5 bpdPila($t3)
-	
-		#movemos $t3 un espacio
-	
+		
 		addi $t3 $t3 1
 	
-		b comienzoconstruccion
+		b loopBpdPila
 	
-	finconstruccion:
+	finLoopBpdPila:
 	
 	addi $t3 $t3 -1
-	
 	li $t5 0
 	
-	conversionDaDe:
+	loopConversion:			#guarda los digitos en memoria (un byte por cada dígito) ej: 15 
 	
-		bltz $t3 finconversionDade
+		bltz $t3 finLoopConversion
 	
 		lb $t6 bpdPila($t3)
 	
-		#desplazamos los bits de $t1 4 posiciones hacia la izquieda
-	
-		sll $t5 $t5 4
-	
-		or $t5 $t6 $t5
-	
+		sll $t5 $t5 4	
+		or $t5 $t6 $t5	
 		addi $t3 $t3 -1
 	
-		b conversionDaDe
+		b loopConversion
 		 
-	finconversionDade:
+	finLoopConversion:
 	
 	sll $t5 $t5 4
 	
-	beqz $t7 bpdNegativo2
-	b bpdPositivo2
+	bltz $t9 bpdNegativo
+	b bpdPositivo
 		
-	bpdPositivo2:
+	bpdPositivo:
 	
 	li $t8 0xC
-	add $t5 $t5 $t8
+	or $t5 $t5 $t8
 	
 	b imprimirBpd
 	
-	bpdNegativo2:
+	bpdNegativo:
 	
 	li $t8 0xD
-	add $t5 $t5 $t8
+	or $t5 $t5 $t8
 	
 	imprimirBpd:
 	mostrarCadena(mensaje4)
@@ -487,7 +456,7 @@ decimalToBpd:
 		loopBpd2:
 			beq $t4 4 finLoopBpd2
 			andi $t6 $t5 0x80000000
-			srl $t6 $t6 31
+			rol $t6 $t6 1
 			mostrarEntero($t6)
 			sll $t5 $t5 1
 			addi $t3 $t3 1
